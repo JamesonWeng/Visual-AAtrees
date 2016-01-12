@@ -3,6 +3,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 import javax.swing.*;
 
 public class Display extends JFrame implements ActionListener {
@@ -15,13 +17,14 @@ public class Display extends JFrame implements ActionListener {
 	private static final int space = 80;
 	private static final int radius = 30;
 	
-	private boolean AAdisplay = true;
+	private boolean AAdisplay;
+	ArrayList<Integer> inputValues;
 	
 	AAtree tree; 
 	
 	JLabel oLabel, curLabel;
 	imagePanel optionsPanel, curPanel;
-	JButton bInsert, bDelete, bView;
+	JButton bInsert, bDelete, bSearch, bView;
 	JTextField input;
 	
 	BufferedImage image;
@@ -53,6 +56,11 @@ public class Display extends JFrame implements ActionListener {
 		bDelete.setActionCommand("Delete");
 		optionsPanel.add(bDelete);
 		
+		bSearch = new JButton ("Search");
+		bSearch.addActionListener(this);
+		bSearch.setActionCommand("Search");
+		optionsPanel.add(bSearch);
+		
 		bView = new JButton ("View BST");
 		bView.addActionListener(this);
 		bView.setActionCommand("Change View");
@@ -69,6 +77,7 @@ public class Display extends JFrame implements ActionListener {
 		g = image.createGraphics();
 		g.setFont (new Font ("Arial Black", Font.PLAIN, 20));
 		
+		AAdisplay = true;
 		tree = new AAtree ();
 		drawTree (tree);
 		
@@ -84,25 +93,36 @@ public class Display extends JFrame implements ActionListener {
 		else {
 			String[] text = input.getText().split(" ");
 			input.setText("");
-			int[] values = new int[text.length];
+			inputValues = new ArrayList<Integer>();
 			
-			for (int i = 0; i < values.length; i++) {
+			for (int i = 0; i < text.length; i++) {
 				try {
-					values[i] = Integer.parseInt (text[i]);
+					inputValues.add(Integer.parseInt (text[i]));
 				} catch (NumberFormatException nfe) {}
 			}
 			
-			if (evt.getActionCommand().equals("Insert") && input.getText() != null) {
-				tree.insertKeysArray(values);
+			if (evt.getActionCommand().equals("Insert") && inputValues.size() > 0) {
+				tree.insertKeysArrayList(inputValues);
 			}
-			else if (evt.getActionCommand().equals("Delete") && input.getText() != null) {		
-				tree.deleteKeysArray(values);
+			else if (evt.getActionCommand().equals("Delete") && inputValues.size() > 0) {		
+				tree.deleteKeysArrayList(inputValues);
 			}
+			
+			//if search, we just want to highlight, which happens anyways
 		}
 		drawTree (tree);
 		repaint();
 	}
 	
+	// Tells if a key was recently added/deleted/searched, in which case we want to highlight it
+	private boolean recentKey (int key) {
+		for (int i = 0; i < inputValues.size(); i++) {
+			if (inputValues.get(i) == key) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	// Centers text horizontally and vertically
 	private void writeCentered (String text, int x, int y) {
@@ -110,6 +130,7 @@ public class Display extends JFrame implements ActionListener {
 		
 		g.drawString(text, x - fm.stringWidth(text)/2, y - fm.getHeight() / 2 + fm.getAscent());
 	}
+	
 	
 	// x is the x-coordinate of the leftmost node, and y is the y-coordinate of the current node
 	// returns a pair which contains the x-coordinate for the parent, and the x-coordinate of node n
@@ -123,6 +144,8 @@ public class Display extends JFrame implements ActionListener {
 			int deltaX, deltaY;
 			double dist;
 			
+			// LEFT SIDE
+			g.setColor (Color.RED);
 			pLeft = drawTree (x, y + space, n.getLeft());				
 			if (n.getLeft() != null) {		
 				deltaX = pLeft.getFst() - pLeft.getSnd();
@@ -131,10 +154,17 @@ public class Display extends JFrame implements ActionListener {
 				g.drawLine (pLeft.getSnd() + (int)(radius*deltaX/dist), y + space - (int)(radius*deltaY/dist), pLeft.getFst() - (int)(radius*deltaX/dist), y + (int)(radius*deltaY/dist));
 			}
 			
+			// CURRENT NODE
+			if (recentKey (n.getKey())) {
+				g.setColor (Color.YELLOW);
+			}
 			g.drawOval (pLeft.getFst() - radius, y - radius, 2 * radius, 2 * radius);
 			writeCentered (Integer.toString(n.getKey()), pLeft.getFst(), y);			
+			g.setColor(Color.RED);
 			
+			// RIGHT SIDE
 			if (n.getRight() != null) {
+				// If we want to view as AAtree, draw double nodes at the same height
 				if (n.getRight().getLevel() == n.getLevel() && AAdisplay) {
 					pRight = drawTree (pLeft.getFst() + space, y, n.getRight());
 					g.drawLine(pLeft.getFst() + radius, y, pRight.getSnd() - radius, y);
@@ -158,7 +188,6 @@ public class Display extends JFrame implements ActionListener {
 	private void drawTree (AAtree tree) {
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, treeWidth, treeHeight);	
-		g.setColor (Color.RED);
 		drawTree ((treeWidth - tree.getWidth() * space)/2 + space/2, (treeHeight - tree.getHeight()*space)/2 + space/2, tree.root);
 		
 		this.curPanel.setImage(image);

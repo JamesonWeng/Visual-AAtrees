@@ -1,5 +1,7 @@
 package jw.AAtree;
 
+import java.util.ArrayList;
+
 // Here we implement an AAtree in order to help provide a visualization of how the tree works.
 // The AAtree is a type of balanced binary search tree with guaranteed O(log n) height, and 
 // it satisfies the following invariants:
@@ -165,10 +167,10 @@ public class AAtree {
 	}
 	
 	// for the purposes of visualizing the tree, the contents of the keys aren't important
-	// so we just assign an arbitraru value
-	public void insertKeysArray (int[] a) {
-		for (int i = 0; i < a.length; i++) {
-			insert (a[i], 0);
+	// so we just assign an arbitrary value
+	public void insertKeysArrayList (ArrayList<Integer> a) {
+		for (int i = 0; i < a.size(); i++) {
+			insert (a.get(i), 0);
 		}
 	}
 	
@@ -322,9 +324,9 @@ public class AAtree {
 		this.root = del (this.root, k);
 	}
 	
-	public void deleteKeysArray (int[] a) {
-		for (int i = 0; i < a.length; i++) {
-			delete (a[i]);
+	public void deleteKeysArrayList (ArrayList<Integer> a) {
+		for (int i = 0; i < a.size(); i++) {
+			delete (a.get(i));
 		}
 	}
 
